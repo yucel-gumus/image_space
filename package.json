@@ -1,0 +1,31 @@
+{
+  "name": "resim-uzayı",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^0.12.0",
+    "@react-three/drei": "^10.0.7",
+    "@react-three/fiber": "^9.1.2",
+    "@types/three": "^0.176.0",
+    "auto-zustand-selectors-hook": "^3.0.1",
+    "clsx": "^2.1.1",
+    "framer-motion-3d": "^12.4.13",
+    "immer": "^10.1.1",
+    "motion": "^12.10.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.176.0",
+    "zustand": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0"
+  }
+}
