@@ -97,10 +97,24 @@ thinking-space/
 
 ### Mevcut Komutlar
 ```bash
-npm run dev      # Geliştirme sunucusunu başlat
-npm run build    # Üretim için derle
-npm run preview  # Üretim derlemesini önizle
+npm run dev           # Geliştirme sunucusunu başlat
+npm run build         # Üretim için derle
+npm run preview       # Üretim derlemesini önizle
+npm run install:legacy # Legacy peer deps ile kurulum
 ```
+
+## 🚀 Deployment
+
+### Vercel'e Deploy Etme
+1. **GitHub'a Push Edin**: Kodunuzu GitHub repository'sine push edin
+2. **Vercel'e Bağlayın**: [Vercel Dashboard](https://vercel.com/dashboard)'da projenizi import edin
+3. **Ortam Değişkenleri**: Vercel dashboard'da `GEMINI_API_KEY` environment variable'ını ekleyin
+4. **Deploy**: Vercel otomatik olarak deploy edecektir
+
+**Önemli Notlar:**
+- `.npmrc` dosyası dependency çakışmalarını çözer
+- `vercel.json` dosyası özel build ayarlarını içerir
+- Environment variables Vercel dashboard'dan ayarlanmalıdır
 
 ### Kod Yapısı
 - **React Functional Components**: Modern React hooks kullanımı
