@@ -2,11 +2,12 @@ import React from "react";
 
 import {Canvas, useFrame, useThree} from '@react-three/fiber'
 import {TrackballControls} from '@react-three/drei'
-import {useRef, useState, useEffect} from 'react'
+import {useRef, useState, useEffect, useMemo, useCallback} from 'react'
 import {animate} from 'motion'
 import useStore from './store'
 import PhotoNode from './PhotoNode'
 import {setTargetImage} from './actions'
+import { Frustum, Matrix4 } from 'three'
 
 function SceneContent() {
   const images = useStore.use.images()
@@ -21,27 +22,37 @@ function SceneContent() {
   const [isAutoRotating, setIsAutoRotating] = useState(false)
   const inactivityTimerRef = useRef(null)
   const rotationVelocityRef = useRef(0)
+  const [visibleImages, setVisibleImages] = useState([])
+  const frameCountRef = useRef(0)
 
   const cameraDistance = 25
-  const targetSpeed = 0.1
-  const acceleration = 0.5
+  const targetSpeed = 0.05
+  const acceleration = 0.3
 
-  const restartInactivityTimer = () => {
+  useEffect(() => {
+    const initialTimer = setTimeout(() => {
+      setIsAutoRotating(true);
+    }, 2000);
+
+    return () => clearTimeout(initialTimer);
+  }, []);
+
+  const restartInactivityTimer = useCallback(() => {
     clearTimeout(inactivityTimerRef.current)
     inactivityTimerRef.current = setTimeout(() => {
-      // setIsAutoRotating(true)
-    }, 33333)
-  }
+      setIsAutoRotating(true)
+    }, 5000)
+  }, []);
 
-  const handleInteractionStart = () => {
+  const handleInteractionStart = useCallback(() => {
     setIsAutoRotating(false)
     clearTimeout(inactivityTimerRef.current)
     rotationVelocityRef.current = 0
-  }
+  }, []);
 
-  const handleInteractionEnd = () => {
+  const handleInteractionEnd = useCallback(() => {
     restartInactivityTimer()
-  }
+  }, [restartInactivityTimer]);
 
   useEffect(() => {
     if (
@@ -270,6 +281,8 @@ function SceneContent() {
   }, [layout, camera, resetCam])
 
   useFrame((_, delta) => {
+    frameCountRef.current += 1;
+    
     let currentVelocity = rotationVelocityRef.current
 
     if (isAutoRotating) {
@@ -291,7 +304,70 @@ function SceneContent() {
     if (controlsRef.current) {
       controlsRef.current.update()
     }
+
+    // Görünür fotoğrafları güncelle (her 30 frame'de bir - yaklaşık 0.5 saniyede bir)
+    if (frameCountRef.current % 30 === 0) {
+      if (images && nodePositions && camera) {
+        const newVisibleImages = updateVisibleImages;
+        if (newVisibleImages.length !== visibleImages.length) {
+          setVisibleImages(newVisibleImages);
+        }
+      }
+    }
   })
+
+  // Frustum culling için görünür fotoğrafları hesapla
+  const updateVisibleImages = useMemo(() => {
+    if (!images || !nodePositions || !camera) return images || [];
+    
+    return images.filter(image => {
+      const nodePos = nodePositions[image.id];
+      if (!nodePos) return false;
+      
+      const worldX = (nodePos[0] - 0.5) * 600;
+      const worldY = (nodePos[1] - 0.5) * 600;
+      const worldZ = ((nodePos[2] || 0) - 0.5) * 600;
+      
+      // Kameradan uzaklığı hesapla
+      const dx = camera.position.x - worldX;
+      const dy = camera.position.y - worldY;
+      const dz = camera.position.z - worldZ;
+      const distanceSquared = dx * dx + dy * dy + dz * dz;
+      
+      return distanceSquared < 1440000; // 1200^2 - sqrt hesaplamasından kaçın
+    });
+  }, [images, nodePositions, camera?.position?.x, camera?.position?.y, camera?.position?.z]);
+
+  // Rendered images'ı memoize et
+  const renderedImages = useMemo(() => {
+    const imagesToRender = visibleImages.length > 0 ? visibleImages : images || [];
+    
+    return imagesToRender.map(image => {
+      const isHighlighted = highlightNodes?.includes(image.id);
+      const nodePos = nodePositions?.[image.id];
+      
+      if (!nodePos) return null;
+
+      return (
+        <PhotoNode
+          key={image.id}
+          id={image.id}
+          description={image.description}
+          x={nodePos[0] - 0.5}
+          y={nodePos[1] - 0.5}
+          z={(nodePos[2] || 0) - 0.5}
+          highlight={
+            (highlightNodes && isHighlighted) ||
+            (targetImage && targetImage === image.id)
+          }
+          dim={
+            (highlightNodes && !isHighlighted) ||
+            (targetImage && targetImage !== image.id)
+          }
+        />
+      );
+    }).filter(Boolean);
+  }, [visibleImages, images, nodePositions, highlightNodes, targetImage]);
 
   return (
     <>
@@ -305,28 +381,7 @@ function SceneContent() {
         noPan
       />
       <group ref={groupRef}>
-        {images?.map(image => {
-          const isHighlighted = highlightNodes?.includes(image.id)
-
-          return (
-            <PhotoNode
-              key={image.id}
-              id={image.id}
-              description={image.description}
-              x={nodePositions?.[image.id][0] - 0.5}
-              y={nodePositions?.[image.id][1] - 0.5}
-              z={(nodePositions?.[image.id][2] || 0) - 0.5}
-              highlight={
-                (highlightNodes && isHighlighted) ||
-                (targetImage && targetImage === image.id)
-              }
-              dim={
-                (highlightNodes && !isHighlighted) ||
-                (targetImage && targetImage !== image.id)
-              }
-            />
-          )
-        })}
+        {renderedImages}
       </group>
     </>
   )

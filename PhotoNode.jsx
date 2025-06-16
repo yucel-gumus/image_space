@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, useMemo, useEffect, memo } from "react";
 
 import { useLoader } from "@react-three/fiber";
 import { Billboard, Text } from "@react-three/drei";
@@ -11,7 +11,43 @@ const thumbHeight = 16;
 const thumbWidth = thumbHeight * aspectRatio;
 const storageRoot = 'https://www.gstatic.com/aistudio/starter-apps/photosphere/'
 
-export default function PhotoNode({
+// Texture cache'i için Map kullanıyoruz
+const textureCache = new Map();
+const loadingPromises = new Map();
+
+// Texture preloader fonksiyonu
+const preloadTexture = (url) => {
+  if (textureCache.has(url) || loadingPromises.has(url)) {
+    return loadingPromises.get(url) || Promise.resolve(textureCache.get(url));
+  }
+
+  const loader = new TextureLoader();
+  const promise = new Promise((resolve, reject) => {
+    loader.load(
+      url,
+      (texture) => {
+        // Texture optimizasyonları
+        texture.generateMipmaps = false;
+        texture.minFilter = 1006; // LinearFilter
+        texture.magFilter = 1006; // LinearFilter
+        
+        textureCache.set(url, texture);
+        loadingPromises.delete(url);
+        resolve(texture);
+      },
+      undefined,
+      (error) => {
+        loadingPromises.delete(url);
+        reject(error);
+      }
+    );
+  });
+
+  loadingPromises.set(url, promise);
+  return promise;
+};
+
+const PhotoNodeContent = memo(({
   id,
   x = 0,
   y = 0,
@@ -19,24 +55,56 @@ export default function PhotoNode({
   highlight,
   dim,
   description,
-}) {
-  const texture = useLoader(TextureLoader, `${storageRoot}${id}`);
+}) => {
+  const textureUrl = `${storageRoot}${id}`;
+  
+  // Texture'ı preload et
+  useEffect(() => {
+    preloadTexture(textureUrl);
+  }, [textureUrl]);
+
+  // Texture'ı cache'den al veya yükle
+  const texture = useMemo(() => {
+    if (textureCache.has(textureUrl)) {
+      return textureCache.get(textureUrl);
+    }
+    
+    // Eğer cache'de yoksa, useLoader ile yükle
+    const loader = new TextureLoader();
+    const loadedTexture = loader.load(textureUrl);
+    // Texture optimizasyonları
+    loadedTexture.generateMipmaps = false;
+    loadedTexture.minFilter = 1006; // LinearFilter
+    loadedTexture.magFilter = 1006; // LinearFilter
+    return loadedTexture;
+  }, [textureUrl]);
+
   const opacity = highlight ? 1 : dim ? 0.1 : 1;
+  
+  // Position hesaplamasını memoize et
+  const position = useMemo(() => [x * 600, y * 600, z * 600], [x, y, z]);
+  const animateProps = useMemo(() => ({
+    x: x * 600,
+    y: y * 600,
+    z: z * 600,
+    transition: { duration: 1, ease: "circInOut" },
+  }), [x, y, z]);
 
-  return !texture ? null : (
+  // Description'ı memoize et
+  const displayDescription = useMemo(() => 
+    description.split(".")[0] + ".", [description]
+  );
+
+  const handleClick = useMemo(() => (e) => {
+    e.stopPropagation();
+    setTargetImage(id);
+  }, [id]);
+
+  return (
     <motion.group
-      onClick={(e) => {
-        e.stopPropagation();
-        setTargetImage(id);
-      }}
-      position={[x, y, z].map((n) => n * 500)}
-      animate={{
-        x: x * 600,
-        y: y * 600,
-        z: z * 600,
-
-        transition: { duration: 1, ease: "circInOut" },
-      }}
+      onClick={handleClick}
+      position={position}
+      animate={animateProps}
     >
       <Billboard>
         <mesh scale={[thumbWidth, thumbHeight, 1]}>
@@ -62,9 +130,41 @@ export default function PhotoNode({
           fillOpacity={0}
           fontFamily="'Google Sans Display', sans-serif"
         >
-          {description.split(".")[0] + "."}
+          {displayDescription}
         </Text>
       </Billboard>
     </motion.group>
   );
-}
+});
+
+PhotoNodeContent.displayName = 'PhotoNodeContent';
+
+// Fallback component for loading state
+const LoadingPlaceholder = memo(({ x, y, z }) => {
+  const position = useMemo(() => [x * 600, y * 600, z * 600], [x, y, z]);
+  
+  return (
+    <motion.group position={position}>
+      <Billboard>
+        <mesh scale={[thumbWidth, thumbHeight, 1]}>
+          <planeGeometry />
+          <meshStandardMaterial color="#333" opacity={0.3} transparent />
+        </mesh>
+      </Billboard>
+    </motion.group>
+  );
+});
+
+LoadingPlaceholder.displayName = 'LoadingPlaceholder';
+
+const PhotoNode = memo((props) => {
+  return (
+    <Suspense fallback={<LoadingPlaceholder x={props.x} y={props.y} z={props.z} />}>
+      <PhotoNodeContent {...props} />
+    </Suspense>
+  );
+});
+
+PhotoNode.displayName = 'PhotoNode';
+
+export default PhotoNode;

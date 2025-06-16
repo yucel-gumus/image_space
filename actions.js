@@ -1,9 +1,25 @@
 import useStore from './store'
-import {queryLlm} from './llm'
-import {queryPrompt} from './prompts'
+import { queryLlm } from './llm'
+import { queryPrompt } from './prompts'
 
 const get = useStore.getState
 const set = useStore.setState
+
+// Debounce utility fonksiyonu
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+// Cache için Map kullan
+const queryCache = new Map();
 
 export const init = async () => {
   if (get().didInit) {
@@ -50,31 +66,83 @@ export const setSphereLayout = positions =>
     state.layouts.sphere = positions
   })
 
-export const sendQuery = async query => {
-  set(state => {
-    state.isFetching = true
-    state.targetImage = null
-    state.resetCam = true
-    state.caption = null
-  })
+// Debounced query function - optimize edilmiş
+const debouncedSendQuery = debounce(async (query) => {
+  const state = get();
+  
+  // Cache kontrolü
+  const cacheKey = query.toLowerCase().trim();
+  if (queryCache.has(cacheKey)) {
+    const cachedResult = queryCache.get(cacheKey);
+    set(state => {
+      state.highlightNodes = cachedResult.highlightNodes;
+      state.caption = cachedResult.caption;
+      state.isFetching = false;
+    });
+    return;
+  }
+
+  if (!state.images) {
+    console.warn('No images available for query');
+    set(state => {
+      state.isFetching = false;
+    });
+    return;
+  }
+
   try {
-    const res = await queryLlm({prompt: queryPrompt(get().images, query)})
-    try{
+    const res = await queryLlm({prompt: queryPrompt(state.images, query)});
+    
+    try {
       const resJ = JSON.parse(res.replace('```json','').replace('```',''));
+      
+      const result = {
+        highlightNodes: resJ.filenames || [],
+        caption: resJ.commentary || `"${query}" için sonuç bulunamadı`
+      };
+      
+      // Sonucu cache'le
+      queryCache.set(cacheKey, result);
+      
       set(state => {
-        state.highlightNodes = resJ.filenames
-        state.caption = resJ.commentary
-      })
-    }catch(e){
-      console.error(e)
+        state.highlightNodes = result.highlightNodes;
+        state.caption = result.caption;
+        state.isFetching = false;
+      });
+      
+    } catch(parseError) {
+      console.error('JSON parse error:', parseError);
+      set(state => {
+        state.caption = `"${query}" için sonuç işlenirken hata oluştu`;
+        state.highlightNodes = null;
+        state.isFetching = false;
+      });
     }
 
-  } finally {
+  } catch (error) {
+    console.error('Query processing error:', error);
     set(state => {
-      state.isFetching = false
-    })
+      state.caption = `Arama sırasında hata oluştu: ${error.message}`;
+      state.highlightNodes = null;
+      state.isFetching = false;
+    });
   }
-}
+}, 300); // 300ms debounce
+
+export const sendQuery = (query) => {
+  if (!query || query.trim().length === 0) {
+    return;
+  }
+
+  set(state => {
+    state.isFetching = true;
+    state.caption = `"${query}" aranıyor...`;
+    state.targetImage = null;
+    state.resetCam = true;
+  });
+
+  debouncedSendQuery(query);
+};
 
 export const clearQuery = () =>
   set(state => {
@@ -83,7 +151,7 @@ export const clearQuery = () =>
     state.targetImage = null
   })
 
-export const setTargetImage = async targetImage => {
+export const setTargetImage = (targetImage) => {
   if (targetImage === get().targetImage) {
     targetImage = null
   }
