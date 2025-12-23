@@ -33,6 +33,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
     "terser": "^5.42.0",
     "typescript": "~5.7.2",
     "vite": "^6.2.0"
