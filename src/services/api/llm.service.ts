@@ -25,7 +25,7 @@ Cevabını kesinlikle json formatında ver (kaçış karakterlerini unutma) : {f
 Sadece json'u döndür, başka hiçbir şey ekleme.
 
 Korpus:
-${JSON.stringify(corpus, null, 2)}
+${JSON.stringify(corpus)}
 
 Sorgu: ${query}
 `;
