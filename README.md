@@ -149,6 +149,22 @@ npm run build
 # dist/ klasörünü static hosting'e yükle
 ```
 
+## 🚀 Deployment (Vercel + Gemini Gateway)
+
+Production uses **python_backend** (`https://api.yucelgumus.dev`) via a serverless proxy:
+
+- Browser → `POST /api/generate` (same origin on Vercel)
+- Vercel function → gateway `POST /api/generate` with `X-API-Key` (server env only)
+
+**Vercel Production env (sensitive, never `VITE_*`):**
+
+- `AI_API_URL` = `https://api.yucelgumus.dev`
+- `GATEWAY_CLIENT_API_KEY` = gateway `CLIENT_API_KEYS` value
+
+**Local dev:** copy `.env.example` → `.env`, set `GATEWAY_CLIENT_API_KEY`; `npm run dev` proxies `/api/generate` to the gateway.
+
+Live: https://image-space-ten.vercel.app
+
 ## 🤝 Katkıda Bulunma
 
 1. Fork yapın
