@@ -5,7 +5,10 @@ import { safeJsonParse } from '../../utils/text.utils';
 // API Constants
 // =============================================================================
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/generate';
+const API_URL = (() => {
+    const base = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+    return base ? `${base}/api/generate` : '/api/generate';
+})();
 
 // =============================================================================
 // Prompt Templates
