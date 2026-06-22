@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 
 token = Path.home().joinpath(".hermes/secrets/vercel_token").read_text().strip()
-wd = Path("/Users/hayabusa/image_space")
+wd = Path(__file__).resolve().parent.parent
 venv = {**os.environ, "VERCEL_TOKEN": token}
 
 r = subprocess.run(
