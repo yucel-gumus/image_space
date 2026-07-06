@@ -58,7 +58,7 @@ for var in ["VITE_API_URL", "GEMINI_API_KEY", "VITE_GEMINI_API_KEY", "VITE_CLIEN
         capture_output=True,
     )
 
-add("AI_API_URL", "https://api.yucelgumus.dev")
+add("AI_API_URL", "https://python-backend-270384591051.europe-west3.run.app")
 add("GATEWAY_CLIENT_API_KEY", key)
 
 p = subprocess.run(

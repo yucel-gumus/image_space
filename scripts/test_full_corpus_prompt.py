@@ -45,5 +45,5 @@ def post(url: str, headers: dict) -> None:
     except urllib.error.HTTPError as e:
         print(url, "ERR", e.code, e.read()[:400].decode(errors="replace"))
 
-post("https://api.yucelgumus.dev/api/generate", {"X-API-Key": key})
+post("https://python-backend-270384591051.europe-west3.run.app/api/generate", {"X-API-Key": key})
 post("https://image-space-ten.vercel.app/api/generate", {})
