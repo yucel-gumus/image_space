@@ -1,191 +1,93 @@
-# 🌌 Resim Uzayı - 3D Fotoğraf Keşif Uygulaması
+# 🌌 Resim Uzayı (3D Semantic Photo Space Explorer)
 
-Modern bir 3D fotoğraf keşif deneyimi sunan, AI destekli görsel arama uygulaması.
-
-## ✨ Özellikler
-
-### 🎯 Temel Özellikler
-- **3D Görselleştirme**: Fotoğrafları küre ve ızgara düzeninde 3D alanda görüntüleme
-- **AI Destekli Arama**: Doğal dil ile fotoğraf arama
-- **Otomatik Döndürme**: Saat yönünde yavaş ve yumuşak döndürme animasyonu
-- **Akıllı Etkileşim**: Kullanıcı etkileşimi sırasında otomatik duraklama
-- **Responsive Tasarım**: Tüm cihazlarda mükemmel görünüm
-
-### 🚀 Performans Optimizasyonları
-- **Texture Cache Sistemi**: %60-80 daha hızlı yükleme
-- **Frustum Culling**: Sadece görünür fotoğrafları render etme
-- **Lazy Loading**: Suspense ile asenkron yükleme
-- **Debounced Search**: Gereksiz API çağrılarını engelleme
-- **Memory Management**: Optimize edilmiş bellek kullanımı
-
-### 🎨 Kullanıcı Deneyimi
-- **Smooth Animations**: Pürüzsüz geçişler ve animasyonlar
-- **Modern UI**: Glassmorphism tasarım dili
-- **Accessibility**: Klavye navigasyonu ve screen reader desteği
-- **Loading States**: Görsel geri bildirimler
-
-## 🛠️ Teknoloji Stack'i
-
-- **React 19** - Modern React özellikleri
-- **Three.js** - 3D grafik rendering
-- **React Three Fiber** - React için Three.js entegrasyonu
-- **Zustand** - State management
-- **Framer Motion 3D** - 3D animasyonlar
-- **Vite** - Hızlı build tool
-- **TypeScript** - Type safety
-
-## 📦 Kurulum
-
-```bash
-# Bağımlılıkları yükle
-npm install
-
-# Development server'ı başlat
-npm run dev
-
-# Production build
-npm run build
-
-# Build analizi
-npm run build:analyze
-
-# Preview production build
-npm run preview
-```
-
-## 🎮 Kullanım
-
-### Temel Navigasyon
-- **Mouse/Touch**: 3D alanda gezinme
-- **Scroll**: Zoom in/out
-- **Fotoğraf Tıklama**: Fotoğrafa odaklanma
-
-### Arama
-- Arama kutusuna doğal dil ile sorgu yazın
-- Örnek aramalar: "kış", "matematiksel kavramlar", "sualtı hayvanları"
-- Sonuçlar otomatik olarak vurgulanır
-
-### Layout Değiştirme
-- **Küre**: Fotoğrafları 3D küre şeklinde düzenler
-- **Izgara**: Fotoğrafları düz ızgara şeklinde düzenler
-
-## 🔧 Konfigürasyon
-
-### Environment Variables
-```bash
-GEMINI_API_KEY=your_api_key_here
-```
-
-### Vite Konfigürasyonu
-- Chunk splitting ile optimize edilmiş bundle'lar
-- Terser ile minification
-- Source map desteği (development)
-- Asset optimization
-
-## 📊 Performans Metrikleri
-
-### Optimizasyon Sonuçları
-- **İlk Yükleme**: %60-80 daha hızlı
-- **CPU Kullanımı**: %40-50 azalma
-- **Bellek Kullanımı**: %30 azalma
-- **Bundle Boyutu**: Chunk splitting ile optimize
-
-### Core Web Vitals
-- **LCP**: < 2.5s
-- **FID**: < 100ms
-- **CLS**: < 0.1
-
-## 🏗️ Mimari
-
-### Bileşen Yapısı
-```
-App.jsx                 # Ana uygulama bileşeni
-├── PhotoViz.jsx       # 3D sahne yöneticisi
-├── PhotoNode.jsx      # Tekil fotoğraf bileşeni
-├── Sidebar.jsx        # Yan panel
-└── actions.js         # State yönetimi
-```
-
-### State Management
-- **Zustand** ile merkezi state
-- **Immer** ile immutable updates
-- **Auto selectors** ile optimize edilmiş subscriptions
-
-### 3D Rendering Pipeline
-1. **Scene Setup**: Kamera, ışıklar, kontroller
-2. **Frustum Culling**: Görünür objeleri filtreleme
-3. **Texture Loading**: Cache'li texture yönetimi
-4. **Animation Loop**: 60 FPS render döngüsü
-
-## 🎯 Optimizasyon Detayları
-
-### Texture Management
-- **Cache Sistemi**: Aynı texture'ları tekrar yüklemez
-- **Preloading**: Arka planda texture yükleme
-- **Compression**: Optimize edilmiş texture formatları
-
-### Render Optimizasyonu
-- **React.memo**: Gereksiz re-render'ları engeller
-- **useMemo/useCallback**: Expensive hesaplamaları cache'ler
-- **Frustum Culling**: Görünür mesafe sınırlaması (1200 birim)
-
-### Bundle Optimizasyonu
-- **Code Splitting**: Vendor chunk'ları ayrıştırma
-- **Tree Shaking**: Kullanılmayan kod eliminasyonu
-- **Minification**: Production build optimizasyonu
-
-## 🚀 Deployment
-
-### Vercel (Önerilen)
-```bash
-# Vercel CLI ile deploy
-npm i -g vercel
-vercel --prod
-```
-
-### Manuel Build
-```bash
-npm run build
-# dist/ klasörünü static hosting'e yükle
-```
-
-## 🚀 Deployment (Vercel + Gemini Gateway)
-
-Production uses **python_backend** (`https://python-backend-270384591051.europe-west3.run.app`) via a serverless proxy:
-
-- Browser → `POST /api/generate` (same origin on Vercel)
-- Vercel function → gateway `POST /api/generate` with `X-API-Key` (server env only)
-
-**Vercel Production env (sensitive, never `VITE_*`):**
-
-- `AI_API_URL` = `https://python-backend-270384591051.europe-west3.run.app`
-- `GATEWAY_CLIENT_API_KEY` = gateway `CLIENT_API_KEYS` value
-
-**Local dev:** copy `.env.example` → `.env`, set `GATEWAY_CLIENT_API_KEY`; `npm run dev` proxies `/api/generate` to the gateway.
-
-Live: https://image-space-ten.vercel.app
-
-## 🤝 Katkıda Bulunma
-
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request açın
-
-## 📝 Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır.
-
-## 🙏 Teşekkürler
-
-- **Three.js** - 3D grafik kütüphanesi
-- **React Three Fiber** - React entegrasyonu
-- **Google Gemini** - AI arama desteği
-- **Vercel** - Hosting platform
+Resim Uzayı; onlarca etiketli fotoğrafı 3 boyutlu bir uzayda küresel (spherical) veya ızgara (grid) düzeninde listeleyen, Google Gemini yapay zeka modelinin gücüyle doğal dilde aramalar yapıp aranan kelimeyle semantik olarak en çok uyuşan görselleri 3D alanda canlı olarak vurgulayan modern bir **React 19 + Three.js + React Three Fiber (R3F)** web uygulamasıdır.
 
 ---
 
-**Geliştirici**: AI Destekli Geliştirme  
-**Versiyon**: 1.0.0  
-**Son Güncelleme**: 2024
+## 🌟 Öne Çıkan Özellikler
+
+### 1. 3 Boyutlu İnteraktif Görselleştirme (Three.js & R3F)
+* **Küresel Düzen (Spherical Layout):** Tüm fotoğraflar 3D küre koordinatları (enlem/boylam benzeri theta-phi hesaplamaları) kullanılarak üç boyutlu bir küre etrafına dizilir.
+* **Izgara Düzeni (Grid Layout):** Fotoğraflar 2 boyutlu düzlemsel bir matris yapısında konumlandırılır.
+* **Fly-To ve Kamera Odaklanması:** Herhangi bir görsele tıklandığında kamera o görsele doğru pürüzsüzce yaklaşır (OrbitControls entegrasyonu).
+* **Otomatik Yavaş Dönme:** Küre, kullanıcı harita ile etkileşime girmediğinde kendi ekseni etrafında yavaşça döner. Etkileşim algılandığında (drag/scroll) otomatik olarak duraklar.
+
+### 2. Semantik AI Arama & Vurgulama
+* **Doğal Dil Arama Sorguları:** Kullanıcılar *"Kış mevsimi"*, *"Uzay ve teknoloji"* gibi kavramsal aramalar yapabilir.
+* **Akıllı Eşleşme:** Gemini AI, sorgu terimini analiz eder ve görsellerin etiketleriyle semantik olarak eşleşenleri seçer.
+* **Dinamik 3D Vurgulama:** Eşleşen görsel panelleri 3D uzayda büyür (scale-up), parlaklıkları artar ve öne doğru çıkar. Eşleşmeyenler ise soluklaşır.
+
+### 3. İleri Seviye 3D Performans Optimizasyonları
+* **Frustum Culling:** Kameranın görüş açısı (frustum) dışında kalan 3D paneller render edilmez. Bu sayede yüzlerce yüksek çözünürlüklü görsel olsa dahi 60 FPS performans korunur.
+* **Akıllı Doku Önbelleği (Texture Cache):** Aynı dokular (textures) tekrar tekrar ekran kartı belleğine (GPU VRAM) yüklenmez, RAM ve VRAM üzerinde cache'lenir.
+* **Suspense & Lazy Loading:** Görseller arka planda asenkron olarak yüklenir, böylece uygulamanın ilk açılış hızı (LCP) 2.5 saniyenin altında tutulur.
+
+---
+
+## 🏗️ Mimarî Akış ve Güvenlik Gücü
+
+API anahtarlarını korumak için tarayıcı doğrudan Gemini sunucuları yerine **Vercel Serverless Function Proxy** üzerinden sorgulama yapar:
+
+```
+[ Tarayıcı (React Three Fiber) ] ──(POST /api/generate)──► [ Vercel Serverless (api/generate.ts) ]
+                                                                       │
+                                                             (X-API-Key Yetkilendirme)
+                                                                       ▼
+[ Gemini 3.5 Flash ] ◄──(Semantik Analiz & Etiketler)─── [ Python Backend (api.yucelgumus.dev) ]
+```
+
+---
+
+## 📂 Proje Klasör Yapısı
+
+```
+image_space/
+├── src/
+│   ├── components/
+│   │   ├── PhotoNode.tsx    # R3F Mesh bileşeni (Fotoğrafın 3D paneli, Hover ve Scale animasyonları)
+│   │   ├── PhotoViz.tsx     # Three.js Canvas, Kamera (OrbitControls), Işıklandırma ve Layout kontrolleri
+│   │   └── Sidebar.tsx      # Arama paneli ve kategori geçişleri
+│   ├── actions.js           # Zustand + Immer durum yönetim eylemleri
+│   ├── app.jsx              # Ana React arayüz katmanı
+│   └── main.jsx
+├── api/
+│   └── generate.ts          # Vercel Serverless Gateway Proxy
+├── vite.config.ts           # Terser minifier ve dev proxy yapılandırması
+├── vercel.json              # Endpoint yönlendirmeleri
+└── package.json
+```
+
+---
+
+## 🚀 Kurulum ve Yerel Çalıştırma
+
+### 1. Bağımlılıkları Yükleyin
+```bash
+git clone https://github.com/yucel-gumus/image_space.git
+cd image_space
+npm install --legacy-peer-deps
+```
+
+### 2. Ortam Değişkenleri (`.env`)
+Proje kök dizininde `.env` oluşturun:
+
+```env
+# Yerel Gateway Bağlantısı
+VITE_API_URL=https://api.yucelgumus.dev
+GATEWAY_CLIENT_API_KEY=your_client_api_key
+
+# Üretim (Production) API Bağlantısı
+AI_API_URL=https://python-backend-270384591051.europe-west3.run.app
+```
+
+### 3. Geliştirme Sunucusunu Başlatma
+```bash
+npm run dev
+```
+Uygulama `http://localhost:5173` adresinde başlayacaktır.
+
+---
+
+## 🔗 Canlı Bağlantılar
+* **Canlı Demo:** [https://image-space-ten.vercel.app](https://image-space-ten.vercel.app)
+* **Geliştirici LinkedIn:** [https://linkedin.com/in/yucel-gumus](https://linkedin.com/in/yucel-gumus)
