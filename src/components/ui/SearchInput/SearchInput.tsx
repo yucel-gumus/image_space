@@ -31,7 +31,6 @@ const SearchInput = memo<SearchInputProps>(({
     const [presetIndex, setPresetIndex] = useState(0);
     const [isFocused, setIsFocused] = useState(false);
 
-    // Preset rotasyonu (sadece input boş ve odaksızken çalışır)
     useEffect(() => {
         if (isFocused || value.trim().length > 0) return;
 
@@ -42,7 +41,6 @@ const SearchInput = memo<SearchInputProps>(({
         return () => clearInterval(interval);
     }, [isFocused, value]);
 
-    // Handlers
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
             onChange(e.target.value);
@@ -64,14 +62,16 @@ const SearchInput = memo<SearchInputProps>(({
         onClear();
     }, [onClear]);
 
-    // Placeholder
     const placeholder = useMemo(
-        () => `Görselleri ara… "${SEARCH_PRESETS[presetIndex]}"`,
+        () => `Görselleri ara… “${SEARCH_PRESETS[presetIndex]}”`,
         [presetIndex]
     );
 
     return (
-        <div className="input">
+        <div className="input" role="search">
+            <span className="icon search-icon" aria-hidden="true">
+                search
+            </span>
             <input
                 ref={inputRef}
                 type="text"
@@ -82,19 +82,24 @@ const SearchInput = memo<SearchInputProps>(({
                 onBlur={() => setIsFocused(false)}
                 placeholder={placeholder}
                 aria-label="Görsellerde ara"
+                autoComplete="off"
+                enterKeyHint="search"
             />
             <img
                 src={STORAGE.SPINNER_URL}
                 className={clsx('spinner', { active: isLoading })}
-                alt="Yükleniyor"
+                alt=""
+                aria-hidden={!isLoading}
             />
             <button
                 onClick={handleClear}
-                className={clsx('clearButton', { active: hasResults })}
+                className={clsx('clearButton', { active: hasResults || value.trim().length > 0 })}
                 aria-label="Aramayı temizle"
                 type="button"
             >
-                ×
+                <span className="icon" aria-hidden="true">
+                    close
+                </span>
             </button>
         </div>
     );

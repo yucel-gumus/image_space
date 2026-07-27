@@ -198,9 +198,9 @@ export const setTargetImage = (targetImage: string | null): void => {
     const currentTarget = getState().targetImage;
     const newTarget = targetImage === currentTarget ? null : targetImage;
 
+    // Do not clear highlightNodes here — search filter stays until clearQuery().
     setState((state) => {
         state.targetImage = newTarget;
-        state.highlightNodes = null;
     });
 };
 

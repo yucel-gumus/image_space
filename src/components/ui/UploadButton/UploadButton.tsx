@@ -17,7 +17,6 @@ const UploadButton = memo(() => {
         if (files.length > 0) {
             uploadAndProcessImages(files);
         }
-        // Input değerini sıfırla ki aynı dosya tekrar seçilebilsin
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -39,9 +38,12 @@ const UploadButton = memo(() => {
                 className="uploadButton"
                 onClick={handleClick}
                 aria-label="Fotoğraf yükle"
-                title="1, 5, 50+ fotoğraf yükle (JPEG, PNG, WEBP vb.)"
+                title="Bir veya daha fazla görsel yükle (JPEG, PNG, WEBP)"
             >
-                <span className="uploadIcon">+</span> Görsel Ekle
+                <span className="uploadIcon" aria-hidden="true">
+                    +
+                </span>
+                Görsel Ekle
             </button>
         </div>
     );

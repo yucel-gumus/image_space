@@ -1,6 +1,6 @@
 import { memo, useState, useCallback, useEffect } from 'react';
 import useStore from './store';
-import { init, setLayout, sendQuery, clearQuery } from './store/actions';
+import { init, setLayout, sendQuery, clearQuery, setSidebarOpen } from './store/actions';
 import PhotoViz from './components/three/PhotoViz';
 import SearchInput from './components/ui/SearchInput';
 import LayoutControls from './components/ui/LayoutControls';
@@ -13,21 +13,18 @@ import type { LayoutType } from './types';
 // =============================================================================
 
 const App = memo(() => {
-    // Initialize application data on mount
     useEffect(() => {
         init();
     }, []);
 
-    // Store state
     const layout = useStore.use.layout();
     const isFetching = useStore.use.isFetching();
     const caption = useStore.use.caption();
     const highlightNodes = useStore.use.highlightNodes();
+    const images = useStore.use.images();
 
-    // Local state
     const [searchValue, setSearchValue] = useState('');
 
-    // Handlers
     const handleSearchChange = useCallback((value: string) => {
         setSearchValue(value);
     }, []);
@@ -45,20 +42,48 @@ const App = memo(() => {
         setLayout(newLayout);
     }, []);
 
+    const handleOpenLibrary = useCallback(() => {
+        setSidebarOpen(true);
+    }, []);
+
+    const imageCount = images?.length ?? 0;
+
     return (
         <main>
-            {/* 3D Görselleştirme */}
             <PhotoViz />
 
-            {/* Kenar Çubuğu */}
+            <header className="app-header">
+                <div className="brand" aria-label="Resim Uzayı">
+                    <div className="brand-mark" aria-hidden="true" />
+                    <div className="brand-text">
+                        <span className="brand-title">Resim Uzayı</span>
+                        <span className="brand-subtitle">KensaI ile Semantik keşif</span>
+                    </div>
+                </div>
+
+                <div className="header-actions">
+                    <button
+                        type="button"
+                        className="ghost-btn"
+                        onClick={handleOpenLibrary}
+                        aria-label="Görsel kütüphanesini aç"
+                    >
+                        <span className="icon" aria-hidden="true">
+                            photo_library
+                        </span>
+                        <span>
+                            Kütüphane
+                            {imageCount > 0 ? ` · ${imageCount}` : ''}
+                        </span>
+                    </button>
+                </div>
+            </header>
+
             <Sidebar />
 
-            {/* Footer - Kontroller */}
             <footer>
-                {/* Caption */}
                 <Caption text={caption} />
 
-                {/* Arama Input'u */}
                 <SearchInput
                     value={searchValue}
                     onChange={handleSearchChange}
@@ -68,7 +93,6 @@ const App = memo(() => {
                     hasResults={!!highlightNodes}
                 />
 
-                {/* Layout Kontrolleri */}
                 <LayoutControls
                     activeLayout={layout}
                     onLayoutChange={handleLayoutChange}

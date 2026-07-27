@@ -16,9 +16,9 @@ interface LayoutControlsProps {
 // Layout Button Config
 // =============================================================================
 
-const LAYOUT_BUTTONS: Array<{ type: LayoutType; label: string }> = [
-    { type: 'sphere', label: 'küre' },
-    { type: 'grid', label: 'ızgara' },
+const LAYOUT_BUTTONS: Array<{ type: LayoutType; label: string; icon: string }> = [
+    { type: 'sphere', label: 'küre', icon: 'public' },
+    { type: 'grid', label: 'ızgara', icon: 'grid_view' },
 ];
 
 // =============================================================================
@@ -38,19 +38,22 @@ const LayoutControls = memo<LayoutControlsProps>(({ activeLayout, onLayoutChange
             <div>
                 <UploadButton />
             </div>
-            <div>
-                {LAYOUT_BUTTONS.map(({ type, label }) => (
+            <div className="layout-toggle" role="group" aria-label="Yerleşim düzeni">
+                {LAYOUT_BUTTONS.map(({ type, label, icon }) => (
                     <button
                         key={type}
                         onClick={handleClick(type)}
                         className={clsx({ active: activeLayout === type })}
                         type="button"
+                        aria-pressed={activeLayout === type}
                     >
-                        {label}
+                        <span className="icon" aria-hidden="true">
+                            {icon}
+                        </span>
+                        <span className="label-full">{label}</span>
                     </button>
                 ))}
             </div>
-            <div></div>
         </div>
     );
 });

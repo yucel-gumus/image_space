@@ -11,13 +11,23 @@ const PhotoViz: React.FC = () => {
 
     return (
         <Canvas
+            className="photo-viz"
             camera={{
                 position: [...CAMERA.INITIAL_POSITION],
                 near: CAMERA.NEAR,
                 far: CAMERA.FAR,
             }}
             onPointerMissed={handlePointerMissed}
+            // Warm terracotta scene — cream UI chrome floats above
+            style={{ background: 'transparent' }}
+            gl={{
+                antialias: true,
+                alpha: true,
+                powerPreference: 'high-performance',
+            }}
         >
+            <color attach="background" args={['#2a1814']} />
+            <fog attach="fog" args={['#2a1814', 420, 1400]} />
             <SceneContent />
         </Canvas>
     );

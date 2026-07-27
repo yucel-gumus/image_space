@@ -18,9 +18,9 @@ const Caption = memo<CaptionProps>(({ text }) => {
     }
 
     return (
-        <div className="caption">
-            <div />
-            {text}
+        <div className="caption" role="status" aria-live="polite">
+            <span className="caption-dot" aria-hidden="true" />
+            <span>{text}</span>
         </div>
     );
 });

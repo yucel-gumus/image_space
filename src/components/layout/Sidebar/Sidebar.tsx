@@ -19,18 +19,33 @@ const Sidebar = memo(() => {
 
     const handleImageClick = (imageId: string) => () => {
         setTargetImage(imageId);
+        setSidebarOpen(false);
     };
 
+    const count = images?.length ?? 0;
+
     return (
-        <aside className={clsx('sidebar', { open: isSidebarOpen })}>
-            <button
-                className="closeButton"
-                onClick={handleClose}
-                aria-label="Kenar çubuğunu kapat"
-                type="button"
-            >
-                <span className="icon">close</span>
-            </button>
+        <aside
+            className={clsx('sidebar', { open: isSidebarOpen })}
+            aria-hidden={!isSidebarOpen}
+            aria-label="Görsel kütüphanesi"
+        >
+            <div className="sidebar-header">
+                <div className="sidebar-heading">
+                    <h2>Kütüphane</h2>
+                    <span>{count > 0 ? `${count} görsel` : 'Henüz görsel yok'}</span>
+                </div>
+                <button
+                    className="closeButton"
+                    onClick={handleClose}
+                    aria-label="Kenar çubuğunu kapat"
+                    type="button"
+                >
+                    <span className="icon" aria-hidden="true">
+                        close
+                    </span>
+                </button>
+            </div>
 
             <ul>
                 {images?.map((image) => (
@@ -44,7 +59,9 @@ const Sidebar = memo(() => {
                         <p>{image.description}</p>
                     </li>
                 ))}
-                {(!images || images.length === 0) && <li>Kullanılabilir görsel yok.</li>}
+                {(!images || images.length === 0) && (
+                    <li className="empty-state">Kütüphanede görsel bulunamadı.</li>
+                )}
             </ul>
         </aside>
     );

@@ -56,13 +56,20 @@ const SceneContent: React.FC = () => {
     const [visibleImages, setVisibleImages] = useState(images ?? []);
     const visibleImagesRef = useRef(visibleImages);
 
-    // Sync visibleImages whenever store images array changes (upload or load)
+    // Sync visibleImages whenever store images or search filter changes
     useEffect(() => {
-        if (images) {
+        if (!images) return;
+
+        if (highlightNodes && highlightNodes.length > 0) {
+            const matchSet = new Set(highlightNodes);
+            const matched = images.filter((image) => matchSet.has(image.id));
+            setVisibleImages(matched);
+            visibleImagesRef.current = matched;
+        } else {
             setVisibleImages(images);
             visibleImagesRef.current = images;
         }
-    }, [images]);
+    }, [images, highlightNodes]);
 
     useEffect(() => {
         visibleImagesRef.current = visibleImages;
@@ -216,32 +223,46 @@ const SceneContent: React.FC = () => {
         }
 
         // Görünür görselleri periyodik güncelle (gerçek 3D dünya koordinatlarına göre)
+        // Arama filtresi aktifken tüm eşleşmeler gösterilir (mesafe culling atlanır).
         if (frameCountRef.current % CULLING.CHECK_INTERVAL_FRAMES === 0) {
             if (images && nodePositions && camera) {
-                const cameraPos = getCameraPosition(camera);
-                if (cameraPos) {
-                    const groupRotY = groupRef.current ? groupRef.current.rotation.y : 0;
-                    const groupPosZ = groupRef.current ? groupRef.current.position.z : 0;
-
-                    const filtered = images.filter((image) => {
-                        const nodePos = nodePositions[image.id];
-                        if (!nodePos) return false;
-
-                        const [localX, localY, localZ] = nodeToWorldPosition(nodePos);
-                        const worldPos = localToWorld(localX, localY, localZ, groupRotY, groupPosZ);
-                        const distSq = distanceSquared(cameraPos, worldPos);
-
-                        return distSq < CULLING.VISIBILITY_DISTANCE_SQUARED;
-                    });
-
+                if (highlightNodes && highlightNodes.length > 0) {
+                    const matchSet = new Set(highlightNodes);
+                    const matched = images.filter((image) => matchSet.has(image.id));
                     const currentVisible = visibleImagesRef.current;
                     const isDifferent =
-                        filtered.length !== currentVisible.length ||
-                        filtered.some((img, idx) => img.id !== currentVisible[idx]?.id);
-
+                        matched.length !== currentVisible.length ||
+                        matched.some((img, idx) => img.id !== currentVisible[idx]?.id);
                     if (isDifferent) {
-                        setVisibleImages(filtered);
-                        visibleImagesRef.current = filtered;
+                        setVisibleImages(matched);
+                        visibleImagesRef.current = matched;
+                    }
+                } else {
+                    const cameraPos = getCameraPosition(camera);
+                    if (cameraPos) {
+                        const groupRotY = groupRef.current ? groupRef.current.rotation.y : 0;
+                        const groupPosZ = groupRef.current ? groupRef.current.position.z : 0;
+
+                        const filtered = images.filter((image) => {
+                            const nodePos = nodePositions[image.id];
+                            if (!nodePos) return false;
+
+                            const [localX, localY, localZ] = nodeToWorldPosition(nodePos);
+                            const worldPos = localToWorld(localX, localY, localZ, groupRotY, groupPosZ);
+                            const distSq = distanceSquared(cameraPos, worldPos);
+
+                            return distSq < CULLING.VISIBILITY_DISTANCE_SQUARED;
+                        });
+
+                        const currentVisible = visibleImagesRef.current;
+                        const isDifferent =
+                            filtered.length !== currentVisible.length ||
+                            filtered.some((img, idx) => img.id !== currentVisible[idx]?.id);
+
+                        if (isDifferent) {
+                            setVisibleImages(filtered);
+                            visibleImagesRef.current = filtered;
+                        }
                     }
                 }
             }
@@ -253,13 +274,18 @@ const SceneContent: React.FC = () => {
     // ==========================================================================
 
     const renderedImages = useMemo(() => {
-        const imagesToRender = visibleImages.length > 0 ? visibleImages : images ?? [];
+        // Search active → only matching images stay on screen (others hidden, not dimmed).
+        // Clear search (highlightNodes = null) → full set returns.
+        let imagesToRender = visibleImages.length > 0 ? visibleImages : images ?? [];
+
+        if (highlightNodes && highlightNodes.length > 0) {
+            const matchSet = new Set(highlightNodes);
+            imagesToRender = (images ?? []).filter((image) => matchSet.has(image.id));
+        }
 
         return imagesToRender
             .map((image) => {
-                const isHighlighted = highlightNodes?.includes(image.id);
                 const nodePos = nodePositions?.[image.id];
-
                 if (!nodePos) return null;
 
                 // Center layout coords (0.5,0.5,0.5) → local origin.
@@ -267,6 +293,8 @@ const SceneContent: React.FC = () => {
                 const lx = (nodePos[0] ?? 0.5) - 0.5;
                 const ly = (nodePos[1] ?? 0.5) - 0.5;
                 const lz = (nodePos[2] ?? 0.5) - 0.5;
+
+                const isSelected = targetImage !== null && targetImage === image.id;
 
                 return (
                     <PhotoNode
@@ -276,14 +304,8 @@ const SceneContent: React.FC = () => {
                         x={lx}
                         y={ly}
                         z={lz}
-                        highlight={
-                            (highlightNodes && isHighlighted) ||
-                            (targetImage !== null && targetImage === image.id)
-                        }
-                        dim={
-                            (highlightNodes && !isHighlighted) ||
-                            (targetImage !== null && targetImage !== image.id)
-                        }
+                        highlight={isSelected}
+                        dim={targetImage !== null && !isSelected}
                     />
                 );
             })
@@ -296,15 +318,18 @@ const SceneContent: React.FC = () => {
 
     return (
         <>
-            <ambientLight intensity={2.3} />
+            <ambientLight intensity={1.85} color="#FFEBD3" />
+            <hemisphereLight args={['#FFEBD3', '#3D231C', 0.55]} />
+            <directionalLight position={[40, 80, 60]} intensity={0.65} color="#FFB6A6" />
+            <directionalLight position={[-50, 30, -40]} intensity={0.35} color="#9BCEC1" />
             <OrbitControls
                 ref={controlsRef as React.RefObject<any>}
                 onStart={onInteractionStart}
                 onEnd={onInteractionEnd}
                 enableDamping
-                dampingFactor={0.05}
-                rotateSpeed={0.6}
-                zoomSpeed={0.8}
+                dampingFactor={0.06}
+                rotateSpeed={0.55}
+                zoomSpeed={0.75}
                 minDistance={CAMERA.MIN_DISTANCE}
                 maxDistance={CAMERA.MAX_DISTANCE}
                 enablePan={false}
