@@ -8,11 +8,17 @@ export const THUMBNAIL = {
 
 export const CAMERA = {
     INITIAL_POSITION: [0, 0, 300] as const,
+    LOOK_AT: [0, 0, 0] as const,
     NEAR: 0.1,
     FAR: 10000,
-    FOCUS_DISTANCE: 25,
-    MIN_DISTANCE: 20,
-    MAX_DISTANCE: 1000,
+    FOCUS_DISTANCE: 35,
+    MIN_DISTANCE: 25,
+    MAX_DISTANCE: 950,
+} as const;
+
+export const GRID_LAYOUT = {
+    ASPECT_RATIO: 16 / 9,
+    Y_OFFSET: 0.25,
 } as const;
 
 // =============================================================================
@@ -40,9 +46,23 @@ export const AUTO_ROTATION = {
 // =============================================================================
 
 export const CULLING = {
-    VISIBILITY_DISTANCE_SQUARED: 1440000,
+    /** ~1200 world units — must cover full grid extent (±300) + camera distance. */
+    VISIBILITY_DISTANCE_SQUARED: 1_440_000,
+    /** Frustum-style distance cull cadence (every N frames). */
     CHECK_INTERVAL_FRAMES: 30,
 } as const;
+
+/** Fallback lattice when umap-grid is empty (mirrors base 12×9 photosphere grid). */
+export const GRID_LATTICE = {
+    COLS: 12,
+    X_MIN: 0.210526,
+    Y_MIN: 0.25,
+    X_STEP: 0.052632,
+    Y_STEP: 0.0625,
+} as const;
+
+/** Mean shell radius of base sphere.json around center (0.5,0.5,0.5). */
+export const SPHERE_SHELL_RADIUS = 0.15;
 
 export const DEBOUNCE = {
     SEARCH_QUERY: 300,

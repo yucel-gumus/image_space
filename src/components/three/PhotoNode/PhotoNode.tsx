@@ -1,12 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { memo, useMemo, useEffect, Suspense } from 'react';
-import { Billboard, Text } from '@react-three/drei';
+import { Billboard } from '@react-three/drei';
 import { motion } from 'framer-motion-3d';
 import { preloadTexture, loadTextureSync } from '../../../services/texture/texture.service';
 import { setTargetImage } from '../../../store/actions';
 import { calculateWorldPosition } from '../../../utils/math.utils';
-import { getFirstSentence } from '../../../utils/text.utils';
 import { THUMBNAIL, ANIMATION, SCENE_SCALE } from '../../../utils/constants';
 import type { PhotoNodeProps } from '../../../types';
 
@@ -23,15 +20,20 @@ const PhotoNodeContent = memo<PhotoNodeContentProps>(({
     z = 0,
     highlight = false,
     dim = false,
-    description,
 }) => {
-    // Texture'ı preload et
+    // Texture'ı preload ve GPU update tetikle
     useEffect(() => {
         preloadTexture(id);
     }, [id]);
 
     // Texture'ı senkron yükle
     const texture = useMemo(() => loadTextureSync(id), [id]);
+
+    useEffect(() => {
+        if (texture) {
+            texture.needsUpdate = true;
+        }
+    }, [texture]);
 
     // Opacity hesapla
     const opacity = highlight ? 1 : dim ? 0.1 : 1;
@@ -52,12 +54,6 @@ const PhotoNodeContent = memo<PhotoNodeContentProps>(({
         [x, y, z]
     );
 
-    // Açıklamanın ilk cümlesini al
-    const displayDescription = useMemo(
-        () => getFirstSentence(description),
-        [description]
-    );
-
     // Click handler
     const handleClick = useMemo(
         () => (e: { stopPropagation: () => void }) => {
@@ -67,12 +63,12 @@ const PhotoNodeContent = memo<PhotoNodeContentProps>(({
         [id]
     );
 
-    // Motion group props - framer-motion-3d tipleri eksik olduğu için any kullanılıyor
+    // Motion group props
     const motionGroupProps = {
         onClick: handleClick,
         position,
         animate: animateProps,
-    } as Record<string, unknown>;
+    };
 
     // Motion material props
     const motionMaterialProps = {
@@ -81,35 +77,21 @@ const PhotoNodeContent = memo<PhotoNodeContentProps>(({
         animate: { opacity },
         transition: { duration: ANIMATION.OPACITY_DURATION },
         color: '#fff',
-    } as Record<string, unknown>;
+    };
+
+    const MotionGroup = motion.group as any;
+    const MotionMeshStandardMaterial = motion.meshStandardMaterial as any;
 
     return (
-        // @ts-ignore - framer-motion-3d tip tanımlamaları eksik
-        <motion.group {...motionGroupProps}>
+        <MotionGroup {...motionGroupProps}>
             {/* Fotoğraf */}
             <Billboard>
                 <mesh scale={[THUMBNAIL.WIDTH, THUMBNAIL.HEIGHT, 1]}>
                     <planeGeometry />
-                    {/* @ts-ignore - framer-motion-3d tip tanımlamaları eksik */}
-                    <motion.meshStandardMaterial {...motionMaterialProps} />
+                    <MotionMeshStandardMaterial {...motionMaterialProps} />
                 </mesh>
             </Billboard>
-
-            {/* Açıklama metni (şu an görünmez) */}
-            <Billboard>
-                <Text
-                    fontSize={1}
-                    color="white"
-                    anchorX="left"
-                    anchorY="middle"
-                    position={[-(THUMBNAIL.WIDTH / 2) + 2, 0, 1]}
-                    maxWidth={THUMBNAIL.WIDTH - 4}
-                    fillOpacity={0}
-                >
-                    {displayDescription}
-                </Text>
-            </Billboard>
-        </motion.group>
+        </MotionGroup>
     );
 });
 
@@ -131,16 +113,17 @@ const LoadingPlaceholder = memo<LoadingPlaceholderProps>(({ x, y, z }) => {
         [x, y, z]
     );
 
+    const MotionGroup = motion.group as any;
+
     return (
-        // @ts-ignore - framer-motion-3d tip tanımlamaları eksik
-        <motion.group position={position}>
+        <MotionGroup position={position}>
             <Billboard>
                 <mesh scale={[THUMBNAIL.WIDTH, THUMBNAIL.HEIGHT, 1]}>
                     <planeGeometry />
                     <meshStandardMaterial color="#333" opacity={0.3} transparent />
                 </mesh>
             </Billboard>
-        </motion.group>
+        </MotionGroup>
     );
 });
 

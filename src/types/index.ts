@@ -60,7 +60,7 @@ export interface PhotoNodeProps {
     z?: number;
     highlight?: boolean;
     dim?: boolean;
-    description: string;
+    description?: string;
 }
 
 export interface SearchInputProps {
@@ -72,17 +72,8 @@ export interface SearchInputProps {
     hasResults: boolean;
     placeholder?: string;
 }
+
 export interface LayoutControlsProps {
     activeLayout: LayoutType;
     onLayoutChange: (layout: LayoutType) => void;
-}
-
-export interface CameraTarget {
-    position: Position3D;
-    lookAt: Position3D;
-}
-
-export interface AnimationConfig {
-    duration: number;
-    ease: string;
 }

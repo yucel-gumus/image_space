@@ -1,5 +1,6 @@
 import { memo, useCallback } from 'react';
 import clsx from 'clsx';
+import UploadButton from '../UploadButton';
 import type { LayoutType } from '../../../types';
 
 // =============================================================================
@@ -34,7 +35,9 @@ const LayoutControls = memo<LayoutControlsProps>(({ activeLayout, onLayoutChange
 
     return (
         <div className="controls">
-            <div></div>
+            <div>
+                <UploadButton />
+            </div>
             <div>
                 {LAYOUT_BUTTONS.map(({ type, label }) => (
                     <button

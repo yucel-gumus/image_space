@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import useStore from '../../../store';
 import { setSidebarOpen, setTargetImage } from '../../../store/actions';
 import { truncateDescription } from '../../../utils/text.utils';
-import { STORAGE } from '../../../utils/constants';
+import { getImageUrl } from '../../../services/texture/texture.service';
 
 // =============================================================================
 // Sidebar Component
@@ -36,7 +36,7 @@ const Sidebar = memo(() => {
                 {images?.map((image) => (
                     <li key={image.id} onClick={handleImageClick(image.id)}>
                         <img
-                            src={`${STORAGE.ROOT_URL}${image.id}`}
+                            src={getImageUrl(image.id)}
                             alt={truncateDescription(image.description, 3)}
                             className="thumbnail"
                             loading="lazy"

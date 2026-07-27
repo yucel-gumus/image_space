@@ -65,8 +65,11 @@ export const useAutoRotation = (
     const updateVelocity = useCallback((delta: number): number => {
         const { TARGET_SPEED, ACCELERATION, MIN_VELOCITY } = AUTO_ROTATION;
 
+        // Sekme değişimi durumlarında delta sıçramalarını (frame spike) engelle
+        const safeDelta = Math.min(delta, 0.1);
+
         const targetVel = isRotating ? TARGET_SPEED : 0;
-        velocityRef.current += (targetVel - velocityRef.current) * ACCELERATION * delta;
+        velocityRef.current += (targetVel - velocityRef.current) * ACCELERATION * safeDelta;
 
         // Çok düşük değerleri sıfırla
         if (Math.abs(velocityRef.current) < MIN_VELOCITY) {

@@ -10,6 +10,11 @@ const API_URL = (() => {
     return base ? `${base}/api/generate` : '/api/generate';
 })();
 
+const ANALYZE_API_URL = (() => {
+    const base = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+    return base ? `${base}/api/analyze-image` : '/api/analyze-image';
+})();
+
 // =============================================================================
 // Prompt Templates
 // =============================================================================
@@ -61,11 +66,50 @@ export const searchImages = async (
     const parsed = safeJsonParse<LlmSearchResponse>(responseText);
 
     if (!parsed) {
-        throw new Error('LLM yanıtı parse edilemedi');
+        console.error('LLM yanıtı parse edilemedi. Ham yanıt:', responseText);
+        throw new Error(`LLM yanıtı parse edilemedi. (Ham yanıt: ${responseText.slice(0, 100)}...)`);
     }
 
+    const rawFilenames = Array.isArray(parsed.filenames) ? parsed.filenames : [];
+    const matchedFilenames = rawFilenames
+        .map((name) => {
+            const exact = images.find((img) => img.id === name);
+            if (exact) return exact.id;
+
+            const partial = images.find(
+                (img) => img.id.endsWith(name) || img.id.includes(name) || name.includes(img.id)
+            );
+            return partial ? partial.id : name;
+        })
+        .filter(Boolean);
+
     return {
-        filenames: parsed.filenames ?? [],
+        filenames: matchedFilenames,
         commentary: parsed.commentary ?? `"${query}" için sonuç bulunamadı`,
     };
+};
+
+export const analyzeImage = async (
+    base64Image: string,
+    mimeType: string = 'image/jpeg',
+    prompt?: string
+): Promise<string> => {
+    const response = await fetch(ANALYZE_API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            image: base64Image,
+            mime_type: mimeType,
+            prompt: prompt || 'Bu görseli Türkçe olarak 1-2 detaylı ama özlü cümle ile tanımla.',
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Görsel analiz API hatası: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.text ?? data.response ?? '';
 };

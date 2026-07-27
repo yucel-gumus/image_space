@@ -1,10 +1,11 @@
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 import useStore from './store';
-import { setLayout, sendQuery, clearQuery } from './store/actions';
+import { init, setLayout, sendQuery, clearQuery } from './store/actions';
 import PhotoViz from './components/three/PhotoViz';
 import SearchInput from './components/ui/SearchInput';
 import LayoutControls from './components/ui/LayoutControls';
 import Caption from './components/ui/Caption';
+import Sidebar from './components/layout/Sidebar';
 import type { LayoutType } from './types';
 
 // =============================================================================
@@ -12,6 +13,11 @@ import type { LayoutType } from './types';
 // =============================================================================
 
 const App = memo(() => {
+    // Initialize application data on mount
+    useEffect(() => {
+        init();
+    }, []);
+
     // Store state
     const layout = useStore.use.layout();
     const isFetching = useStore.use.isFetching();
@@ -43,6 +49,9 @@ const App = memo(() => {
         <main>
             {/* 3D Görselleştirme */}
             <PhotoViz />
+
+            {/* Kenar Çubuğu */}
+            <Sidebar />
 
             {/* Footer - Kontroller */}
             <footer>

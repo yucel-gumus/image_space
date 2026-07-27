@@ -29,15 +29,18 @@ const SearchInput = memo<SearchInputProps>(({
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [presetIndex, setPresetIndex] = useState(0);
+    const [isFocused, setIsFocused] = useState(false);
 
-    // Preset rotasyonu
+    // Preset rotasyonu (sadece input boş ve odaksızken çalışır)
     useEffect(() => {
+        if (isFocused || value.trim().length > 0) return;
+
         const interval = setInterval(() => {
             setPresetIndex((prev) => (prev === SEARCH_PRESETS.length - 1 ? 0 : prev + 1));
         }, SEARCH_PRESET_INTERVAL);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [isFocused, value]);
 
     // Handlers
     const handleChange = useCallback(
@@ -75,6 +78,8 @@ const SearchInput = memo<SearchInputProps>(({
                 value={value}
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
                 placeholder={placeholder}
                 aria-label="Görsellerde ara"
             />

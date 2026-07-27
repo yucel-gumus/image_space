@@ -55,7 +55,7 @@ export default defineConfig(({ mode }) => {
         overlay: false,
       },
       proxy: {
-        '/api/generate': {
+        '/api': {
           target: gatewayTarget,
           changeOrigin: true,
           secure: true,

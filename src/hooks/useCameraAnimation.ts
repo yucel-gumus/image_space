@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { Camera } from 'three';
-import { ANIMATION, CAMERA, SCENE_SCALE } from '../utils/constants';
-import { localToWorld, normalizeAndScale } from '../utils/math.utils';
+import { ANIMATION, CAMERA } from '../utils/constants';
+import { localToWorld, normalizeAndScale, nodeToWorldPosition } from '../utils/math.utils';
 import type { Position3D, NodePositions } from '../types';
 
 interface CameraAnimationControls {
@@ -31,6 +31,21 @@ const easeInOut = (t: number): number => {
 };
 
 export const useCameraAnimation = (): UseCameraAnimationResult => {
+    const animFrameIdRef = useRef<number | null>(null);
+
+    const stopCurrentAnimation = useCallback(() => {
+        if (animFrameIdRef.current !== null) {
+            cancelAnimationFrame(animFrameIdRef.current);
+            animFrameIdRef.current = null;
+        }
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            stopCurrentAnimation();
+        };
+    }, [stopCurrentAnimation]);
+
     const focusOnNode = useCallback(
         (
             nodeId: string,
@@ -40,6 +55,8 @@ export const useCameraAnimation = (): UseCameraAnimationResult => {
             groupRotation: number,
             groupPositionZ: number
         ) => {
+            stopCurrentAnimation();
+
             const nodePos = nodePositions[nodeId];
 
             if (!nodePos) {
@@ -47,9 +64,7 @@ export const useCameraAnimation = (): UseCameraAnimationResult => {
                 return;
             }
 
-            const localX = (nodePos[0] - 0.5) * SCENE_SCALE;
-            const localY = (nodePos[1] - 0.5) * SCENE_SCALE;
-            const localZ = ((nodePos[2] ?? 0) - 0.5) * SCENE_SCALE;
+            const [localX, localY, localZ] = nodeToWorldPosition(nodePos);
             const targetWorld = localToWorld(localX, localY, localZ, groupRotation, groupPositionZ);
 
             const duration = ANIMATION.CAMERA_DURATION * 1000;
@@ -88,19 +103,23 @@ export const useCameraAnimation = (): UseCameraAnimationResult => {
                 controls.target.z = startTargetPos.z + (targetWorld[2] - startTargetPos.z) * progress;
 
                 if (rawProgress < 1) {
-                    requestAnimationFrame(animateFrame);
+                    animFrameIdRef.current = requestAnimationFrame(animateFrame);
+                } else {
+                    animFrameIdRef.current = null;
                 }
             };
 
-            requestAnimationFrame(animateFrame);
+            animFrameIdRef.current = requestAnimationFrame(animateFrame);
         },
-        []
+        [stopCurrentAnimation]
     );
 
     const resetCamera = useCallback(
         (camera: Camera, controls: CameraAnimationControls['controls']) => {
+            stopCurrentAnimation();
+
             const targetPos = CAMERA.INITIAL_POSITION;
-            const targetLookAt: Position3D = [0, 0, 0];
+            const targetLookAt: Position3D = [...CAMERA.LOOK_AT];
             const duration = ANIMATION.CAMERA_DURATION * 1000;
 
             const startCameraPos = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
@@ -121,17 +140,19 @@ export const useCameraAnimation = (): UseCameraAnimationResult => {
                 controls.target.z = startTargetPos.z + (targetLookAt[2] - startTargetPos.z) * progress;
 
                 if (rawProgress < 1) {
-                    requestAnimationFrame(animateFrame);
+                    animFrameIdRef.current = requestAnimationFrame(animateFrame);
                 } else {
                     camera.position.set(...targetPos);
                     controls.target.set(...targetLookAt);
+                    animFrameIdRef.current = null;
                 }
             };
 
-            requestAnimationFrame(animateFrame);
+            animFrameIdRef.current = requestAnimationFrame(animateFrame);
         },
-        []
+        [stopCurrentAnimation]
     );
 
     return { focusOnNode, resetCamera };
 };
+

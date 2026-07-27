@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Camera } from 'three';
-import { CULLING, SCENE_SCALE } from '../utils/constants';
+import { CULLING } from '../utils/constants';
+import { nodeToWorldPosition, distanceSquared } from '../utils/math.utils';
 import type { ImageMetadata, NodePositions, Position3D } from '../types';
 
 interface UseVisibleImagesParams {
@@ -23,18 +24,10 @@ export const useVisibleImages = ({
             const nodePos = nodePositions[image.id];
             if (!nodePos) return false;
 
-            // Dünya koordinatlarına dönüştür
-            const worldX = (nodePos[0] - 0.5) * SCENE_SCALE;
-            const worldY = (nodePos[1] - 0.5) * SCENE_SCALE;
-            const worldZ = ((nodePos[2] ?? 0) - 0.5) * SCENE_SCALE;
+            const worldPos = nodeToWorldPosition(nodePos);
+            const distSq = distanceSquared(cameraPosition, worldPos);
 
-            // Kameradan mesafe (kare - sqrt'den kaçın)
-            const dx = cameraPosition[0] - worldX;
-            const dy = cameraPosition[1] - worldY;
-            const dz = cameraPosition[2] - worldZ;
-            const distanceSquared = dx * dx + dy * dy + dz * dz;
-
-            return distanceSquared < CULLING.VISIBILITY_DISTANCE_SQUARED;
+            return distSq < CULLING.VISIBILITY_DISTANCE_SQUARED;
         });
     }, [images, nodePositions, cameraPosition?.[0], cameraPosition?.[1], cameraPosition?.[2]]);
 };
