@@ -73,7 +73,7 @@ export const DEBOUNCE = {
 // =============================================================================
 
 export const STORAGE = {
-    ROOT_URL: 'https://www.gstatic.com/aistudio/starter-apps/photosphere/',
+    ROOT_URL: 'https://storage.googleapis.com/experiments-uploads/g2demos/photo-applet/',
     SPINNER_URL: 'https://storage.googleapis.com/experiments-uploads/g2demos/photo-applet/spinner.svg',
 } as const;
 
