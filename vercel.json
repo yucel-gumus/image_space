@@ -4,7 +4,11 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/remote-photos/:path*",
+      "destination": "https://storage.googleapis.com/experiments-uploads/g2demos/photo-applet/:path*"
+    },
+    {
+      "source": "/((?!api/|remote-photos/).*)",
       "destination": "/index.html"
     }
   ]

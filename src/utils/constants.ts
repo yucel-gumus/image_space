@@ -73,8 +73,8 @@ export const DEBOUNCE = {
 // =============================================================================
 
 export const STORAGE = {
-    ROOT_URL: 'https://storage.googleapis.com/experiments-uploads/g2demos/photo-applet/',
-    SPINNER_URL: 'https://storage.googleapis.com/experiments-uploads/g2demos/photo-applet/spinner.svg',
+    ROOT_URL: '/remote-photos/',
+    SPINNER_URL: '/remote-photos/spinner.svg',
 } as const;
 
 export const DATA_FILES = {

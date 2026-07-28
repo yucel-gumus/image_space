@@ -55,6 +55,11 @@ export default defineConfig(({ mode }) => {
         overlay: false,
       },
       proxy: {
+        '/remote-photos': {
+          target: 'https://storage.googleapis.com/experiments-uploads/g2demos/photo-applet',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/remote-photos/, ''),
+        },
         '/api': {
           target: gatewayTarget,
           changeOrigin: true,
