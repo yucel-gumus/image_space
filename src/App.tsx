@@ -93,6 +93,9 @@ const App = memo(() => {
                     hasResults={!!highlightNodes}
                 />
 
+                <div className="text-xs opacity-75">
+                    Geliştirici: <a href="https://www.yucelgumus.dev/" target="_blank" rel="noopener noreferrer" className="font-semibold underline hover:opacity-100">Yücel Gümüş</a>
+                </div>
                 <LayoutControls
                     activeLayout={layout}
                     onLayoutChange={handleLayoutChange}
